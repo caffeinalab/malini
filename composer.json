@@ -1,0 +1,26 @@
+{
+    "name": "malini/malini",
+    "description": "Magic for wordpress theme",
+    "authors": [
+        {
+            "name": "Alberto Parziale",
+            "email": "alberto.parziale@caffeina.com",
+            "homepage": "http://caffeina.com"
+        }
+    ],
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Malini\\": "./Malini/"
+        },
+        "files": [
+            "./Malini/helpers.php",
+            "./Malini/filters.php"
+        ]
+    }
+}
