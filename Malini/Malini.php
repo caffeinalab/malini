@@ -1,10 +1,9 @@
 <?php
+
 namespace Malini;
 
 use Malini\Helpers\AccessorRegistry;
 use Malini\Helpers\DecoratorRegistry;
-use Malini\Post;
-use Malini\Archive;
 
 class Malini
 {
@@ -14,9 +13,12 @@ class Malini
 
     protected $booted = false;
 
-    private function __construct() { }
+    private function __construct()
+    {
+    }
 
-    public function boot() {
+    public function boot()
+    {
         if ($this->booted) {
             return;
         }
@@ -46,55 +48,41 @@ class Malini
         do_action('malini_register_decorators');
 
         // Init
-
         do_action('malini_init');
-
-        // Register custom actions/filters        
-        add_action(
-            'pre_get_posts',
-            function($query) {
-                if (!isset($query->query)
-                        || !isset($query->query['post_type'])
-                        || empty(isset($query->query['post_type']))) {
-                    return;
-                }
-                $post_types = is_string($query->query['post_type'])
-                    ? [ $query->query['post_type'] ]
-                    : array_unique($query->query['post_type']);
-                sort($post_types);
-                do_action(
-                    'malini_pre_get_' . implode('_', $post_types),
-                    $query
-                );
-            }
-        );
 
         $this->booted = true;
     }
 
-    public static function getInstance() {
+    public static function getInstance()
+    {
         if (empty(static::$instance)) {
             static::$instance = new Malini();
         }
+
         return static::$instance;
     }
 
-    public function registerAccessor(string $name, string $namespace) {
+    public function registerAccessor(string $name, string $namespace)
+    {
         AccessorRegistry::register($name, $namespace);
+
         return $this;
     }
 
-    public function registerDecorator(string $name, string $namespace) {
+    public function registerDecorator(string $name, string $namespace)
+    {
         DecoratorRegistry::register($name, $namespace);
+
         return $this;
     }
 
-    public function post(\WP_post $post) {
+    public function post(\WP_post $post)
+    {
         return Post::create($post);
     }
 
-    public function archive(array $posts) {
+    public function archive(array $posts)
+    {
         return Archive::create($posts);
     }
-
 }

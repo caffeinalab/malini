@@ -7,11 +7,11 @@ use Malini\Interfaces\AccessorInterface;
 
 /**
  * The `media` accessor retrieves media related to the post.
- * 
+ *
  * Syntax:
- * 
+ *
  * @media:{size},{media_meta_key_or_id},{media_property_key}
- * 
+ *
  * - {size}: media size (full, thumbnail, etc.; custom sizes are accepted as
  *           long as they have been registered);
  * - {media_meta_key_or_id}: if the id of the wanted media is saved inside a
@@ -27,72 +27,33 @@ use Malini\Interfaces\AccessorInterface;
  */
 class MediaAccessor implements AccessorInterface
 {
-
-    protected static $media_cache = [];
-
-    public function getThumbnailData($thumbnail_id) {
-        $thumbnail_key = 't_' . $thumbnail_id;
-        if (!isset(static::$media_cache[$thumbnail_key])) {
-            static::$media_cache[$thumbnail_key] = (array)wp_prepare_attachment_for_js($thumbnail_id);
-        }
-        return static::$media_cache[$thumbnail_key];
-    }
-
-    public function retrieve(Post $post, ...$arguments) {
+    public function retrieve(Post $post, ...$arguments)
+    {
         $wp_post = $post->wp_post;
 
-        $size = isset($arguments[0])
-            ? $arguments[0]
-            : 'full';
+        $media_id = (isset($arguments[1]) && $arguments[1] !== 'this')
+        ? (int) get_post_meta($wp_post->ID, $arguments[1], true)
+        : get_post_thumbnail_id($wp_post->ID);
 
-        $thumbnail_id = (isset($arguments[1]) && $arguments[1] !== 'this')
-            ? (int)get_post_meta($wp_post->ID, $arguments[1], true)
-            : get_post_thumbnail_id($wp_post->ID);
-
-        if (empty($thumbnail_id)) {
+        if (empty($media_id)) {
             return null;
         }
-
-        $media_property_key = isset($arguments[2])
-            ? (string)$arguments[2]
-            : null;
-
-        $thumbnail_data = static::getThumbnailData($thumbnail_id);
-        if (!isset($thumbnail_data['sizes'][$size])) {
-            $size = 'full';
-        }
-
-        if (empty($thumbnail_data)) {
-            return null;
-        }
-
-        $selected_size = $thumbnail_data['sizes'][$size];
 
         $media = [
-            'name'              => $thumbnail_data['name'],
-            'filename'          => $thumbnail_data['filename'],
-            'alt'               => $thumbnail_data['alt'],
-            'caption'           => $thumbnail_data['caption'],
-            'description'       => $thumbnail_data['description'],
-            'originalurl'       => $thumbnail_data['url'],
-            'mime'              => $thumbnail_data['mime'],
-            'type'              => $thumbnail_data['type'],
-            'subtype'           => $thumbnail_data['subtype'],
-            'filesize'          => $thumbnail_data['filesizeInBytes'],
-            'readablefilesize'  => $thumbnail_data['filesizeHumanReadable'],
-            'size'              => $size,
-            'url'               => $selected_size['url'],
-            'width'             => $selected_size['width'],
-            'height'            => $selected_size['height'],
-            'orientation'       => $selected_size['orientation'],
-            'ratio'             => $selected_size['width'] / $selected_size['height']
+          'meta' => get_post($media_id),
         ];
+        if (isset($arguments[0])) {
+            $sizes = explode($arguments[0]);
+        } else {
+            $sizes = get_intermediate_image_sizes();
+            $sizes[] = 'full';
+        }
 
-        if (!empty($media_property_key) && isset($media[$media_property_key])) {
-            return $media[$media_property_key];
+        foreach ($sizes as $size) {
+            $media[$size] = wp_get_attachment_image_src($media_id, $size);
+            $media[$size][3] = $media[$size][2] / $media[$size][1];
         }
 
         return $media;
     }
-
 }

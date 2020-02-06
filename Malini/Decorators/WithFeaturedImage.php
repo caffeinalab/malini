@@ -8,29 +8,28 @@ use Malini\Interfaces\PostDecoratorInterface;
 
 /**
  * The `featuredimage` decorator enrich the `Malini\Post` with the data regarding the feature selected for this post.
- * 
+ *
  * Attributes added:
  * - `thumbnail`: the featured image data in its `thumbnail` size;
  * - `featuredimage`: the featured image data in its `full` size.
- * 
+ *
  * Options:
  * - `filter`: the attributes we want to retrieve
  */
-class WithFeaturedImage extends PostDecorator implements PostDecoratorInterface {
-
-    public function decorate(Post $post, array $options = []) : Post {
+class WithFeaturedImage extends PostDecorator implements PostDecoratorInterface
+{
+    public function decorate(Post $post, array $options = []): Post
+    {
         $post->addRawAttributes([
-            'thumbnail'         => '@media:thumbnail',
-            'featuredimage'     => '@media:full'
+            'featuredimage' => '@media',
         ]);
 
         $this->filterConfig(
             $post,
             $options,
-            [ 'thumbnail', 'featuredimage' ]
+            ['featuredimage']
         );
 
         return $post;
     }
-
 }
