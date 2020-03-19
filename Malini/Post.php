@@ -320,7 +320,8 @@ class Post implements SerializableInterface
     protected static function filterChildren($data, array $filter_children)
     {
         if (!is_object($data) && !is_array($data)) {
-            throw new Exception('Cannot filter children of `'.gettype($data).'` variable');
+            // throw new Exception('Cannot filter children of `'.gettype($data).'` variable');
+            return null;
         }
 
         if (is_object($data)) {
