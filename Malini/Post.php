@@ -14,6 +14,8 @@ class Post implements SerializableInterface
 {
     protected $attributes = [];
 
+    protected $static_attributes = [];
+
     protected $casts = [];
 
     protected $filters = [];
@@ -74,6 +76,22 @@ class Post implements SerializableInterface
     public function addRawAttributes(array $attributes)
     {
         return $this->addAttributes($attributes, true);
+    }
+
+    public function addStaticAttribute(string $key, $value)
+    {
+        $this->static_attributes[$key] = $value;
+
+        return $this;
+    }
+
+    public function addStaticAttributes(array $attributes)
+    {
+        foreach ($attributes as $key => $value) {
+            $this->addStaticAttribute($key, $value);
+        }
+
+        return $this;
     }
 
     public function addFilter(string $source, $dest)
@@ -375,6 +393,10 @@ class Post implements SerializableInterface
             if (!empty($attr_children)) {
                 $to_show->{$attr_alias} = static::filterChildren($to_show->{$attr_alias}, $attr_children);
             }
+        }
+
+        foreach ($this->static_attributes as $key => $value) {
+            $to_show->{$key} = $value;
         }
 
         return $to_show;
