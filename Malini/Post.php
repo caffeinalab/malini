@@ -80,30 +80,81 @@ class Post implements SerializableInterface
 
     public function addStaticAttribute(string $key, $value)
     {
-        $this->static_attributes[$key] = $value;
+        static::add($this->static_attributes, $key, $value);
 
         return $this;
     }
 
     public function addStaticAttributes(array $attributes)
     {
-        foreach ($attributes as $key => $value) {
-            $this->addStaticAttribute($key, $value);
-        }
+        static::multiAdd($this->static_attributes, $attributes);
 
         return $this;
     }
 
+    protected function parseFilters($raw_filters)
+    {
+        if ($raw_filters instanceof Closure) {
+            return [
+                $raw_filters,
+            ];
+        }
+
+        return
+            is_array($raw_filters)
+                ? $raw_filters
+                : (is_string($raw_filters)
+                    ? explode('|', $raw_filters)
+                    : []
+                )
+            ;
+    }
+
     public function addFilter(string $source, $dest)
     {
-        static::add($this->filters, $source, $dest);
+        list($alias, $key) = array_pad(explode(':', $source, 2), -2, null);
+        if (!isset($this->filters[$key])) {
+            $this->filters[$key] = [
+                'alias' => null,
+                'filters' => []
+            ];
+        }
+        $this->filters[$key]['alias'] = $alias ?? $this->filters[$key]['alias'];
+        $this->filters[$key]['filters'] = array_merge(
+            $this->filters[$key]['filters'],
+            $this->parseFilters($dest)
+        );
 
         return $this;
     }
 
     public function addFilters(array $filters)
     {
-        static::multiAdd($this->filters, $filters);
+        foreach ($filters as $source => $dest) {
+          static::addFilter($source, $dest);
+        }
+
+        return $this;
+    }
+
+    public function addAlias(string $old_name, string $alias)
+    {
+        // we add an empty filter with renaming capabilities
+        static::addFilter(
+            "{$alias}:{$old_name}",
+            function($value, $_attr_name, $_this) {
+                return $value;
+            }
+        );
+
+        return $this;
+    }
+
+    public function addAliases(array $aliases)
+    {
+        foreach ($aliases as $old_name => $alias) {
+            static::addAlias($old_name, $alias);
+        }
 
         return $this;
     }
@@ -246,31 +297,18 @@ class Post implements SerializableInterface
         return $this;
     }
 
-    protected function parseFilters($raw_filters)
-    {
-        if ($raw_filters instanceof Closure) {
-            return [
-                $raw_filters,
-            ];
-        }
-
-        return
-            is_array($raw_filters)
-                ? $raw_filters
-                : (is_string($raw_filters)
-                    ? explode('|', $raw_filters)
-                    : []
-                )
-            ;
-    }
-
-    protected function applyFilters($attr_name, $value)
+    protected function applyFilters($attr_name, $value, $attr_alias)
     {
         $attr_filters = isset($this->filters[$attr_name])
             ? $this->filters[$attr_name]
             : [];
 
-        $attr_filters = $this->parseFilters($attr_filters);
+        if (empty($attr_filters)) {
+            return [ $value, $attr_alias ];
+        }
+
+        $attr_alias = $attr_filters['alias'] ?? $attr_alias ?? $attr_name;
+        $attr_filters = $attr_filters['filters'];
         foreach ($attr_filters as $filter_index => $filter) {
             if ($filter instanceof Closure) {
                 $value = $filter($value, $attr_name, $this);
@@ -302,7 +340,7 @@ class Post implements SerializableInterface
             $value = $filter_name(...$args);
         }
 
-        return $value;
+        return [ $value, $attr_alias ];
     }
 
     protected static function filterArrayChildren(array $data, $filter_children)
@@ -386,10 +424,12 @@ class Post implements SerializableInterface
             $attr_name = $attr['name'];
             $attr_alias = $attr['alias'];
             $attr_children = $attr['children'];
-            $to_show->{$attr_alias} = $this->applyFilters(
+            list($value, $attr_alias) = $this->applyFilters(
                 $attr_name,
-                AccessorRegistry::retrieve($this, $this->attributes[$attr_name])
+                AccessorRegistry::retrieve($this, $this->attributes[$attr_name]),
+                $attr_alias
             );
+            $to_show->{$attr_alias} = $value;
             if (!empty($attr_children)) {
                 $to_show->{$attr_alias} = static::filterChildren($to_show->{$attr_alias}, $attr_children);
             }
