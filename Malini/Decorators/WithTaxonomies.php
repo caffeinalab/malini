@@ -27,12 +27,16 @@ class WithTaxonomies extends PostDecorator implements PostDecoratorInterface
             'taxonomies' => function () use ($post_taxonomies) {
                 return $post_taxonomies;
             },
-            'terms' => function () use ($wp_post, $post_taxonomies) {
+            'terms' => function () use ($wp_post, $post_taxonomies, $options) {
                 $terms = [];
                 foreach ($post_taxonomies as $taxonomy) {
                     $terms_by_taxonomy = get_the_terms($wp_post->ID, $taxonomy);
                     if (is_array($terms_by_taxonomy)) {
-                        $terms = array_merge($terms, $terms_by_taxonomy);
+                        if (isset($options['options']) && in_array('show_taxonomy_key', $options['options'])) {
+                            $terms[$taxonomy] = $terms_by_taxonomy;
+                        } else {
+                            $terms = array_merge($terms, $terms_by_taxonomy);
+                        }
                     }
                 }
 
