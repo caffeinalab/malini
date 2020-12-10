@@ -31,6 +31,20 @@ class WithTaxonomies extends PostDecorator implements PostDecoratorInterface
                 $terms = [];
                 foreach ($post_taxonomies as $taxonomy) {
                     $terms_by_taxonomy = get_the_terms($wp_post->ID, $taxonomy);
+                    if (isset($options['options']) && in_array('add_term_meta', $options['options'])) {
+                        $terms_by_taxonomy = array_map(
+                            function($term) {
+                                $term_meta = get_term_meta($term->term_id);
+                                if (!empty($term_meta)) {
+                                    foreach ($term_meta as $key => $value) {
+                                        $term->{$key} = $value;
+                                    }
+                                }
+                                return $term;
+                            },
+                            $terms_by_taxonomy
+                        );
+                    }
                     if (is_array($terms_by_taxonomy)) {
                         if (isset($options['options']) && in_array('show_taxonomy_key', $options['options'])) {
                             $terms[$taxonomy] = $terms_by_taxonomy;

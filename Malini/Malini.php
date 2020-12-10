@@ -7,7 +7,7 @@ use Malini\Helpers\DecoratorRegistry;
 
 class Malini
 {
-    public const VERSION = '1.1.1';
+    public const VERSION = '1.1.2';
 
     protected static $instance = null;
 
