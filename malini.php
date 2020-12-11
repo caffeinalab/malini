@@ -10,7 +10,7 @@
  * Plugin Name: Malini
  * Plugin URI:  https://github.com/caffeinalab/malini
  * Description: Malini is an extensible content decoration and normalization library for WordPress entities.
- * Version:     1.1.2
+ * Version:     1.1.3
  * Author:      Caffeina
  * Author URI:  https://caffeina.com
  * Text Domain: malini
