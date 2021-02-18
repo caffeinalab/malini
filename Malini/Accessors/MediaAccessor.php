@@ -51,7 +51,7 @@ class MediaAccessor implements AccessorInterface
 
         foreach ($sizes as $size) {
             $media[$size] = wp_get_attachment_image_src($media_id, $size);
-            $media[$size][3] = $media[$size][2] / $media[$size][1];
+            $media[$size][3] = $media[$size][1] != 0 ? $media[$size][2] / $media[$size][1] : 0;
         }
 
         return $media;
