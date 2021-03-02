@@ -1,4 +1,6 @@
 # Malini
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcaffeinalab%2Fmalini.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcaffeinalab%2Fmalini?ref=badge_shield)
+
 
 **Malini** is an extensible content decoration and normalization library for WordPress.
 It exposes a simple interface to *decorate* WordPress entities, like posts or archives, with all the information you may need in whatever format you're more comfortable with.
@@ -28,3 +30,6 @@ Check the [wiki](https://github.com/caffeinalab/malini/wiki) to see what you can
 ## Updates
 
 It is (*or will be*) possible to update **Malini** through WordPress as any other WordPress plugin.
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcaffeinalab%2Fmalini.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcaffeinalab%2Fmalini?ref=badge_large)
